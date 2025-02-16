@@ -1,0 +1,116 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  accounts  Account[]
+  createdAt DateTime? @map("created_at") @db.Timestamptz
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  id        String    @id @default(uuid()) @db.Uuid
+  metadata  Json?
+  name      String
+  updatedAt DateTime? @map("updated_at") @db.Timestamptz
+}
+
+model Account {
+  createdAt       DateTime?        @map("created_at") @db.Timestamptz
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz
+  gitIntegrations GitIntegration[]
+  id              String           @id @default(uuid()) @db.Uuid
+  metadata        Json?
+  name            String
+  projects        Project[]
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  updatedAt       DateTime?        @map("updated_at") @db.Timestamptz
+}
+
+model GitIntegration {
+  account      Account      @relation(fields: [accountId], references: [id])
+  accountId    String
+  createdAt    DateTime?    @map("created_at") @db.Timestamptz
+  deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz
+  githubApps   GithubApp[]
+  id           String       @id @default(uuid()) @db.Uuid
+  metadata     Json?
+  repositories Repository[]
+  updatedAt    DateTime?    @map("updated_at") @db.Timestamptz
+  url          String
+}
+
+model GithubApp {
+  appId            String         @map("app_id")
+  createdAt        DateTime?      @map("created_at") @db.Timestamptz
+  deletedAt        DateTime?      @map("deleted_at") @db.Timestamptz
+  gitIntegration   GitIntegration @relation(fields: [gitIntegrationId], references: [id])
+  gitIntegrationId String
+  id               String         @id @default(uuid()) @db.Uuid
+  installationId   String         @map("installation_id")
+  metadata         Json?
+  updatedAt        DateTime?      @map("updated_at") @db.Timestamptz
+}
+
+model Repository {
+  componentRepositories ComponentRepository[]
+  createdAt             DateTime?             @map("created_at") @db.Timestamptz
+  deletedAt             DateTime?             @map("deleted_at") @db.Timestamptz
+  gitIntegration        GitIntegration        @relation(fields: [gitIntegrationId], references: [id])
+  gitIntegrationId      String
+  id                    String                @id @default(uuid()) @db.Uuid
+  metadata              Json?
+  name                  String
+  updatedAt             DateTime?             @map("updated_at") @db.Timestamptz
+}
+
+model Project {
+  account             Account              @relation(fields: [accountId], references: [id])
+  accountId           String
+  components          Component[]
+  createdAt           DateTime?            @map("created_at") @db.Timestamptz
+  deletedAt           DateTime?            @map("deleted_at") @db.Timestamptz
+  id                  String               @id @default(uuid()) @db.Uuid
+  metadata            Json?
+  name                String
+  projectEnvironments ProjectEnvironment[]
+  updatedAt           DateTime?            @map("updated_at") @db.Timestamptz
+}
+
+model ProjectEnvironment {
+  createdAt DateTime? @map("created_at") @db.Timestamptz
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  id        String    @id @default(uuid()) @db.Uuid
+  metadata  Json?
+  name      String
+  project   Project   @relation(fields: [projectId], references: [id])
+  projectId String
+  updatedAt DateTime? @map("updated_at") @db.Timestamptz
+}
+
+model Component {
+  componentRepositories ComponentRepository[]
+  createdAt             DateTime?             @map("created_at") @db.Timestamptz
+  deletedAt             DateTime?             @map("deleted_at") @db.Timestamptz
+  id                    String                @id @default(uuid()) @db.Uuid
+  metadata              Json?
+  name                  String
+  project               Project               @relation(fields: [projectId], references: [id])
+  projectId             String
+  updatedAt             DateTime?             @map("updated_at") @db.Timestamptz
+}
+
+model ComponentRepository {
+  component    Component  @relation(fields: [componentId], references: [id])
+  componentId  String
+  createdAt    DateTime?  @map("created_at") @db.Timestamptz
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz
+  id           String     @id @default(uuid()) @db.Uuid
+  metadata     Json?
+  repository   Repository @relation(fields: [repositoryId], references: [id])
+  repositoryId String
+  updatedAt    DateTime?  @map("updated_at") @db.Timestamptz
+}
